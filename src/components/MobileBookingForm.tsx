@@ -219,10 +219,4 @@ const MobileBookingForm: React.FC<MobileBookingFormProps> = ({
   );
 };
 
-export default MobileBookingForm; : 'text-gray-500'
-                  }`}>
-                    <Calendar className="w-3 h-3 mr-1" />
-                    {formattedDate} • {event.time}
-                  </div>
-                  <div className={`flex items-center text-xs ${
-                    isDark ? 'text-gray-400'
+export default MobileBookingForm;

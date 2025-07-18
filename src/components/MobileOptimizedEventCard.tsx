@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Event } from '@/types/event';
-import { Calendar, MapPin, Users, Clock } from 'lucide-react';
+import { Calendar, MapPin, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import WishlistButton from './WishlistButton';
 import { useTheme } from '@/contexts/ThemeContext';
