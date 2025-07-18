@@ -1,8 +1,12 @@
+// src/components/Navbar.tsx - Simplified working version
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Calendar, User, LogOut, Settings, Ticket } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useWishlist } from '@/contexts/WishlistContext';
+import ThemeToggle from '@/components/ThemeToggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +17,7 @@ import {
 
 const Navbar: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuth();
+  const { wishlist } = useWishlist();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -78,6 +83,9 @@ const Navbar: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-4">
+            {/* Theme Toggle */}
+            <ThemeToggle />
+
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

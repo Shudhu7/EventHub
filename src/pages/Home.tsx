@@ -1,3 +1,4 @@
+// src/pages/Home.tsx - Simplified working version
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
