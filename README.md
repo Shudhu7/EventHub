@@ -1,73 +1,63 @@
-# Welcome to your Lovable project
+# 🎟️ EventHub - Frontend
 
-## Project info
+**EventHub** is a full-stack event booking platform where users can discover, browse, and book events like concerts, seminars, and workshops.
 
-**URL**: https://lovable.dev/projects/d1642902-9620-4f21-86fc-4b8db210b5ea
+This repository contains the **frontend** built using **React + Vite**, which connects to a Spring Boot backend API.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## 🚀 Features
 
-**Use Lovable**
+- List upcoming events
+- Filter and search events
+- Book tickets for events
+- User login and registration
+- Admin UI for managing events
+- Integration with backend APIs (Spring Boot)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/d1642902-9620-4f21-86fc-4b8db210b5ea) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🛠️ Tech Stack
 
-**Use your preferred IDE**
+- ⚛️ React (with Vite)
+- 📦 Axios (API communication)
+- 🔄 React Router (navigation)
+- 🎨 Tailwind CSS or Bootstrap (styling)
+- 🔐 JWT Auth (via backend)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 📦 Getting Started
 
-Follow these steps:
+### 1️⃣ Clone the repository
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+```bash
+git clone https://github.com/Shudhu7/EventHub.git
+cd EventHub
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2️⃣ Install dependencies
+npm install
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3️⃣ Start the development server
 npm run dev
-```
 
-**Edit a file directly in GitHub**
+Your app will be running at: http://localhost:5173
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Note: Vite runs on port 5173 by default.
 
-**Use GitHub Codespaces**
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+📁 Folder Structure
+src/
+├── components/      # Shared React components (Navbar, EventCard, etc.)
+├── pages/           # Page views (Home, Login, Register, Dashboard)
+├── services/        # Axios API logic
+├── App.jsx          # Root component
+├── main.jsx         # Entry point
+└── index.css        # Global styles
 
-## What technologies are used for this project?
+🧪 Scripts
+npm run dev       # Run dev server (Vite)
+npm run build     # Build for production
+npm run preview   # Preview production build
 
-This project is built with:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/d1642902-9620-4f21-86fc-4b8db210b5ea) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
