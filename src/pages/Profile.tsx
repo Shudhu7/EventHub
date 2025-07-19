@@ -1,4 +1,4 @@
-// src/pages/Profile.tsx
+// src/pages/Profile.tsx - Fixed layout to prevent name shifting
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -157,53 +157,66 @@ const Profile: React.FC = () => {
           {/* Profile Tab */}
           <TabsContent value="profile">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Profile Information</CardTitle>
-                <Button
-                  variant={isEditing ? "outline" : "default"}
-                  onClick={() => setIsEditing(!isEditing)}
-                >
-                  {isEditing ? (
-                    <>
-                      <X className="mr-2 h-4 w-4" />
-                      Cancel
-                    </>
-                  ) : (
-                    <>
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit Profile
-                    </>
-                  )}
-                </Button>
+              <CardHeader>
+                <div className="flex flex-row items-center justify-between w-full">
+                  <CardTitle>Profile Information</CardTitle>
+                  <div className="flex-shrink-0">
+                    <Button
+                      variant={isEditing ? "outline" : "default"}
+                      onClick={() => setIsEditing(!isEditing)}
+                      className="whitespace-nowrap"
+                    >
+                      {isEditing ? (
+                        <>
+                          <X className="mr-2 h-4 w-4" />
+                          Cancel
+                        </>
+                      ) : (
+                        <>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit Profile
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Profile Picture */}
-                <div className="flex items-center space-x-4">
-                  <Avatar className="w-20 h-20">
+                {/* Profile Picture Section - Fixed Layout */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                  <Avatar className="w-20 h-20 flex-shrink-0">
                     <AvatarImage src={profileData.profileImage} />
                     <AvatarFallback className="text-lg">
                       {getInitials(profileData.name)}
                     </AvatarFallback>
                   </Avatar>
-                  {isEditing && (
-                    <Button variant="outline" size="sm">
-                      <Camera className="mr-2 h-4 w-4" />
-                      Change Photo
-                    </Button>
-                  )}
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold">{profileData.name}</h3>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
-                        {user.role === 'admin' ? (
-                          <>
-                            <Shield className="mr-1 h-3 w-3" />
-                            Admin
-                          </>
-                        ) : (
-                          'User'
-                        )}
-                      </Badge>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-lg font-semibold truncate">{profileData.name}</h3>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                            {user.role === 'admin' ? (
+                              <>
+                                <Shield className="mr-1 h-3 w-3" />
+                                Admin
+                              </>
+                            ) : (
+                              'User'
+                            )}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      {isEditing && (
+                        <div className="mt-2 sm:mt-0 sm:ml-4 flex-shrink-0">
+                          <Button variant="outline" size="sm" className="whitespace-nowrap">
+                            <Camera className="mr-2 h-4 w-4" />
+                            Change Photo
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -5,7 +5,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWishlist } from '@/contexts/WishlistContext';
-import { Calendar, User, LogOut, Settings, Ticket, Menu, Heart, Home } from 'lucide-react';
+import { Calendar, User, LogOut, Settings, Ticket, Menu, Heart, Home, UserCircle } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 
 const MobileNavigation: React.FC = () => {
@@ -98,6 +98,18 @@ const MobileNavigation: React.FC = () => {
                         {bookingCount}
                       </Badge>
                     )}
+                  </Link>
+
+                  {/* Added Profile Link */}
+                  <Link
+                    to="/profile"
+                    className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
+                      location.pathname === '/profile' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'
+                    }`}
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <UserCircle className="h-5 w-5" />
+                    <span>Profile</span>
                   </Link>
 
                   {user?.role === 'admin' && (

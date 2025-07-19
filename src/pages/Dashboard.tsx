@@ -309,16 +309,39 @@ const Dashboard: React.FC = () => {
             </div>
           ) : (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="all">All Bookings ({bookings.length})</TabsTrigger>
-                <TabsTrigger value="confirmed">
-                  Confirmed ({filterBookings('confirmed').length})
+              {/* Mobile-Friendly Tab List */}
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 p-1 h-auto">
+                <TabsTrigger 
+                  value="all" 
+                  className="text-xs sm:text-sm px-1 sm:px-2 py-2 h-auto flex flex-col sm:flex-row items-center"
+                >
+                  <span className="hidden sm:inline">All Bookings</span>
+                  <span className="sm:hidden text-xs">All</span>
+                  <span className="text-xs sm:ml-2">({bookings.length})</span>
                 </TabsTrigger>
-                <TabsTrigger value="pending">
-                  Pending ({filterBookings('pending').length})
+                <TabsTrigger 
+                  value="confirmed"
+                  className="text-xs sm:text-sm px-1 sm:px-2 py-2 h-auto flex flex-col sm:flex-row items-center"
+                >
+                  <span className="hidden sm:inline">Confirmed</span>
+                  <span className="sm:hidden text-xs">Confirmed</span>
+                  <span className="text-xs sm:ml-2">({filterBookings('confirmed').length})</span>
                 </TabsTrigger>
-                <TabsTrigger value="cancelled">
-                  Cancelled ({filterBookings('cancelled').length})
+                <TabsTrigger 
+                  value="pending"
+                  className="text-xs sm:text-sm px-1 sm:px-2 py-2 h-auto flex flex-col sm:flex-row items-center"
+                >
+                  <span className="hidden sm:inline">Pending</span>
+                  <span className="sm:hidden text-xs">Pending</span>
+                  <span className="text-xs sm:ml-2">({filterBookings('pending').length})</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="cancelled"
+                  className="text-xs sm:text-sm px-1 sm:px-2 py-2 h-auto flex flex-col sm:flex-row items-center"
+                >
+                  <span className="hidden sm:inline">Cancelled</span>
+                  <span className="sm:hidden text-xs">Cancelled</span>
+                  <span className="text-xs sm:ml-2">({filterBookings('cancelled').length})</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -409,7 +432,7 @@ const Dashboard: React.FC = () => {
                                 </div>
                               </div>
 
-                              {/* Enhanced Action Buttons - Updated Section */}
+                              {/* Enhanced Action Buttons */}
                               <div className="space-y-2">
                                 <UniversalBookingActions
                                   booking={booking}
