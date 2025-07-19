@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/table';
 import Navbar from '@/components/Navbar';
 import AdminUserManagement from '@/components/AdminUserManagement';
+import UniversalBookingActions from '@/components/UniversalBookingActions';
 import { events } from '@/data/events';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserBooking } from '@/types/event';
@@ -44,7 +45,8 @@ import {
   XCircle,
   AlertCircle,
   Ticket,
-  Settings
+  Settings,
+  FileText
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import EnhancedFooter from '@/components/EnhancedFooter';
@@ -222,19 +224,22 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const handleDownloadTicket = (booking: UserBooking) => {
-    if (!booking || !booking.eventTitle) {
-      toast({
-        title: "Error",
-        description: "Invalid booking data.",
-        variant: "destructive",
-      });
-      return;
-    }
+  // Universal Booking Actions handlers
+  const handleRatingSubmit = (bookingId: string, rating: number, review: string) => {
+    console.log('Rating submitted:', { bookingId, rating, review });
+    // In a real app, this would make an API call to save the rating
+  };
 
+  const handleDownloadComplete = (bookingId: string) => {
+    console.log('Download completed for booking:', bookingId);
+    // In a real app, this could track download analytics
+  };
+
+  const showToastMessage = (title: string, description: string, variant?: 'default' | 'destructive') => {
     toast({
-      title: "Download Started",
-      description: `Downloading ticket for ${booking.eventTitle}`,
+      title,
+      description,
+      variant: variant || "default",
     });
   };
 
@@ -404,33 +409,16 @@ const Dashboard: React.FC = () => {
                                 </div>
                               </div>
 
-                              {/* Action Buttons */}
-                              <div className="flex flex-wrap gap-2">
-                                {booking.status === 'confirmed' && (
-                                  <>
-                                    <Button
-                                      variant="default"
-                                      size="sm"
-                                      onClick={() => handleDownloadTicket(booking)}
-                                      className="flex items-center gap-1"
-                                    >
-                                      <Download className="h-4 w-4" />
-                                      Download Ticket
-                                    </Button>
-                                    
-                                    {booking.eventDate && new Date(booking.eventDate) < new Date() && (
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="flex items-center gap-1"
-                                      >
-                                        <Star className="h-4 w-4" />
-                                        Rate Event
-                                      </Button>
-                                    )}
-                                  </>
-                                )}
-                                
+                              {/* Enhanced Action Buttons - Updated Section */}
+                              <div className="space-y-2">
+                                <UniversalBookingActions
+                                  booking={booking}
+                                  onRatingSubmit={handleRatingSubmit}
+                                  onDownloadComplete={handleDownloadComplete}
+                                  showToast={showToastMessage}
+                                />
+
+                                {/* Keep cancel booking functionality */}
                                 {booking.status === 'pending' && (
                                   <Button
                                     variant="outline"
@@ -442,15 +430,6 @@ const Dashboard: React.FC = () => {
                                     Cancel Booking
                                   </Button>
                                 )}
-                                
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="flex items-center gap-1"
-                                >
-                                  <CreditCard className="h-4 w-4" />
-                                  View Receipt
-                                </Button>
                               </div>
                             </div>
                           </div>
