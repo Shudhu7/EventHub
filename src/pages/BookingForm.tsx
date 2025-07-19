@@ -11,8 +11,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ArrowLeft, Ticket, CreditCard, Calendar, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { UserBooking } from '@/types/event';
+import { initializeUserStorage } from '@/utils/localStorageCleanup';
 import EnhancedFooter from '@/components/EnhancedFooter';
-
 
 const BookingForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -72,12 +72,19 @@ const BookingForm: React.FC = () => {
   const saveBookingToStorage = (booking: UserBooking) => {
     if (!user) return;
     
+    // Initialize user storage if needed
+    initializeUserStorage(user.id);
+    
     const existingBookings = localStorage.getItem(`bookings_${user.id}`);
     let bookings: UserBooking[] = [];
     
     if (existingBookings) {
       try {
         bookings = JSON.parse(existingBookings);
+        // Ensure bookings is an array
+        if (!Array.isArray(bookings)) {
+          bookings = [];
+        }
       } catch (error) {
         console.error('Error parsing existing bookings:', error);
         bookings = [];
@@ -91,7 +98,8 @@ const BookingForm: React.FC = () => {
   const generateTicketId = (eventTitle: string) => {
     const prefix = eventTitle.substring(0, 3).toUpperCase();
     const timestamp = Date.now().toString().slice(-6);
-    return `${prefix}-${timestamp}`;
+    const random = Math.random().toString(36).substring(2, 5).toUpperCase();
+    return `${prefix}-${timestamp}-${random}`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -102,9 +110,11 @@ const BookingForm: React.FC = () => {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Create booking object
+      // Create booking object with unique ID
+      const bookingId = `booking_${user!.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
       const newBooking: UserBooking = {
-        id: `booking-${Date.now()}`,
+        id: bookingId,
         eventId: event.id,
         eventTitle: event.title,
         eventDate: event.date,

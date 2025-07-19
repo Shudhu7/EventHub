@@ -45,15 +45,39 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoading(false);
   }, []);
 
+  // Generate a unique user ID based on email
+  const generateUniqueUserId = (email: string): string => {
+    // Create a simple hash from email + timestamp for uniqueness
+    const timestamp = Date.now().toString();
+    const emailHash = email.split('').reduce((hash, char) => {
+      return ((hash << 5) - hash) + char.charCodeAt(0);
+    }, 0).toString(36);
+    return `user_${emailHash}_${timestamp}`;
+  };
+
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      // Mock login - in real app, this would call your API
-      const mockUser: User = {
-        id: '1',
-        email,
-        name: email.split('@')[0],
-        role: email === 'admin@example.com' ? 'admin' : 'user',
-      };
+      // Check if this is a returning user
+      const existingUsers = JSON.parse(localStorage.getItem('registered_users') || '{}');
+      let mockUser: User;
+
+      if (existingUsers[email]) {
+        // Returning user - use existing ID
+        mockUser = existingUsers[email];
+      } else {
+        // New user for demo purposes or admin
+        const userId = email === 'admin@example.com' ? 'admin_1' : generateUniqueUserId(email);
+        mockUser = {
+          id: userId,
+          email,
+          name: email.split('@')[0],
+          role: email === 'admin@example.com' ? 'admin' : 'user',
+        };
+        
+        // Store the user for future logins
+        existingUsers[email] = mockUser;
+        localStorage.setItem('registered_users', JSON.stringify(existingUsers));
+      }
       
       const mockToken = 'mock-jwt-token-' + Date.now();
       
@@ -74,13 +98,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const register = async (email: string, password: string, name: string): Promise<boolean> => {
     try {
-      // Mock registration - in real app, this would call your API
+      // Check if user already exists
+      const existingUsers = JSON.parse(localStorage.getItem('registered_users') || '{}');
+      
+      if (existingUsers[email]) {
+        // User already exists, return false to indicate registration failure
+        return false;
+      }
+
+      // Create new user with unique ID
+      const userId = generateUniqueUserId(email);
       const mockUser: User = {
-        id: Date.now().toString(),
+        id: userId,
         email,
         name,
         role: 'user',
       };
+      
+      // Store the new user
+      existingUsers[email] = mockUser;
+      localStorage.setItem('registered_users', JSON.stringify(existingUsers));
       
       const mockToken = 'mock-jwt-token-' + Date.now();
       
