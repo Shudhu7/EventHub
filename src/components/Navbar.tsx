@@ -1,4 +1,4 @@
-// Updated src/components/Navbar.tsx - Add profile link
+// src/components/Navbar.tsx - Fixed register icon button positioning
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,7 @@ import { Calendar, User, LogOut, Settings, Ticket, Heart, UserCircle } from 'luc
 import { useAuth } from '@/contexts/AuthContext';
 import { useWishlist } from '@/contexts/WishlistContext';
 import ThemeToggle from '@/components/ThemeToggle';
+import MobileNavigation from '@/components/MobileNavigation';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,24 +43,26 @@ const Navbar: React.FC = () => {
   const bookingCount = getBookingCount();
 
   return (
-    <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
+    <nav className="bg-white dark:bg-gray-900 shadow-sm border-b sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
+          {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <Calendar className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold text-gray-900">EventHub</span>
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">EventHub</span>
           </Link>
 
+          {/* Desktop Navigation */}
           <div className="hidden md:flex space-x-8">
             <Link 
               to="/" 
-              className="text-gray-700 hover:text-primary transition-colors"
+              className="text-gray-700 dark:text-gray-300 hover:text-primary transition-colors"
             >
               Events
             </Link>
             <Link
               to="/wishlist"
-              className="text-gray-700 hover:text-primary transition-colors flex items-center gap-1"
+              className="text-gray-700 dark:text-gray-300 hover:text-primary transition-colors flex items-center gap-1"
             >
               <Heart className="h-4 w-4" />
               Wishlist
@@ -72,7 +75,7 @@ const Navbar: React.FC = () => {
             {isAuthenticated && (
               <Link
                 to="/my-bookings"
-                className="text-gray-700 hover:text-primary transition-colors flex items-center gap-1"
+                className="text-gray-700 dark:text-gray-300 hover:text-primary transition-colors flex items-center gap-1"
               >
                 <Ticket className="h-4 w-4" />
                 My Bookings
@@ -86,74 +89,78 @@ const Navbar: React.FC = () => {
             {isAuthenticated && user?.role === 'admin' && (
               <Link 
                 to="/dashboard" 
-                className="text-gray-700 hover:text-primary transition-colors"
+                className="text-gray-700 dark:text-gray-300 hover:text-primary transition-colors"
               >
                 Dashboard
               </Link>
             )}
           </div>
 
+          {/* Right side content */}
           <div className="flex items-center space-x-4">
             {/* Theme Toggle */}
             <ThemeToggle />
 
+            {/* Desktop Auth Section */}
             {isAuthenticated ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <User className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem disabled>
-                    <span className="font-medium">{user?.name}</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile">
-                      <UserCircle className="w-4 h-4 mr-2" />
-                      Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/wishlist">
-                      <Heart className="w-4 h-4 mr-2" />
-                      Wishlist
-                      {wishlist.length > 0 && (
-                        <span className="bg-primary text-white text-xs rounded-full px-2 py-1 ml-auto">
-                          {wishlist.length}
-                        </span>
-                      )}
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/my-bookings">
-                      <Ticket className="w-4 h-4 mr-2" />
-                      My Bookings
-                      {bookingCount > 0 && (
-                        <span className="bg-primary text-white text-xs rounded-full px-2 py-1 ml-auto">
-                          {bookingCount}
-                        </span>
-                      )}
-                    </Link>
-                  </DropdownMenuItem>
-                  {user?.role === 'admin' && (
+              <div className="hidden md:block">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <User className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem disabled>
+                      <span className="font-medium">{user?.name}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link to="/dashboard">
-                        <Settings className="w-4 h-4 mr-2" />
-                        Admin Dashboard
+                      <Link to="/profile">
+                        <UserCircle className="w-4 h-4 mr-2" />
+                        Profile
                       </Link>
                     </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    <DropdownMenuItem asChild>
+                      <Link to="/wishlist">
+                        <Heart className="w-4 h-4 mr-2" />
+                        Wishlist
+                        {wishlist.length > 0 && (
+                          <span className="bg-primary text-white text-xs rounded-full px-2 py-1 ml-auto">
+                            {wishlist.length}
+                          </span>
+                        )}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/my-bookings">
+                        <Ticket className="w-4 h-4 mr-2" />
+                        My Bookings
+                        {bookingCount > 0 && (
+                          <span className="bg-primary text-white text-xs rounded-full px-2 py-1 ml-auto">
+                            {bookingCount}
+                          </span>
+                        )}
+                      </Link>
+                    </DropdownMenuItem>
+                    {user?.role === 'admin' && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/dashboard">
+                          <Settings className="w-4 h-4 mr-2" />
+                          Admin Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             ) : (
-              <div className="space-x-2">
+              <div className="hidden md:flex items-center space-x-2">
                 <Button variant="ghost" asChild>
                   <Link to="/login">Login</Link>
                 </Button>
@@ -162,6 +169,9 @@ const Navbar: React.FC = () => {
                 </Button>
               </div>
             )}
+
+            {/* Mobile Navigation */}
+            <MobileNavigation />
           </div>
         </div>
       </div>
