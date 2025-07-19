@@ -1,8 +1,8 @@
-// Updated src/components/Navbar.tsx - Add wishlist link
+// Updated src/components/Navbar.tsx - Add profile link
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Calendar, User, LogOut, Settings, Ticket, Heart } from 'lucide-react';
+import { Calendar, User, LogOut, Settings, Ticket, Heart, UserCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useWishlist } from '@/contexts/WishlistContext';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -109,6 +109,12 @@ const Navbar: React.FC = () => {
                     <span className="font-medium">{user?.name}</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile">
+                      <UserCircle className="w-4 h-4 mr-2" />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/wishlist">
                       <Heart className="w-4 h-4 mr-2" />

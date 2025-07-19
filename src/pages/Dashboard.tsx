@@ -6,8 +6,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import EnhancedFooter from '@/components/EnhancedFooter';
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
@@ -25,6 +23,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import Navbar from '@/components/Navbar';
+import AdminUserManagement from '@/components/AdminUserManagement';
 import { events } from '@/data/events';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserBooking } from '@/types/event';
@@ -44,9 +43,11 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
-  Ticket
+  Ticket,
+  Settings
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import EnhancedFooter from '@/components/EnhancedFooter';
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -70,7 +71,6 @@ const Dashboard: React.FC = () => {
           const savedBookings = localStorage.getItem(`bookings_${user.id}`);
           if (savedBookings) {
             const parsedBookings = JSON.parse(savedBookings);
-            // Ensure all bookings have required properties
             const validBookings = parsedBookings.filter((booking: any) => 
               booking && 
               booking.id && 
@@ -496,231 +496,292 @@ const Dashboard: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-            <p className="text-gray-600">Manage your events and view analytics</p>
+            <p className="text-gray-600">Manage your events, users, and view analytics</p>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Total Bookings</p>
-                    <p className="text-3xl font-bold text-primary">{totalBookings}</p>
-                  </div>
-                  <Users className="h-8 w-8 text-primary" />
-                </div>
-              </CardContent>
-            </Card>
+          <Tabs defaultValue="overview" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="events">Events</TabsTrigger>
+              <TabsTrigger value="users">User Management</TabsTrigger>
+            </TabsList>
 
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                    <p className="text-3xl font-bold text-primary">${totalRevenue.toLocaleString()}</p>
-                  </div>
-                  <TrendingUp className="h-8 w-8 text-primary" />
-                </div>
-              </CardContent>
-            </Card>
+            {/* Overview Tab */}
+            <TabsContent value="overview">
+              {/* Stats Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Total Bookings</p>
+                        <p className="text-3xl font-bold text-primary">{totalBookings}</p>
+                      </div>
+                      <Users className="h-8 w-8 text-primary" />
+                    </div>
+                  </CardContent>
+                </Card>
 
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Active Events</p>
-                    <p className="text-3xl font-bold text-primary">{upcomingEvents}</p>
-                  </div>
-                  <Calendar className="h-8 w-8 text-primary" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                        <p className="text-3xl font-bold text-primary">${totalRevenue.toLocaleString()}</p>
+                      </div>
+                      <TrendingUp className="h-8 w-8 text-primary" />
+                    </div>
+                  </CardContent>
+                </Card>
 
-          {/* Events Management */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="flex items-center">
-                <BarChart3 className="mr-2 h-5 w-5" />
-                Events Management
-              </CardTitle>
-              <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Event
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Create New Event</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 mt-4">
-                    <div className="grid grid-cols-2 gap-4">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
                       <div>
-                        <Label htmlFor="title">Event Title</Label>
-                        <Input
-                          id="title"
-                          value={newEvent.title}
-                          onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
-                          placeholder="Enter event title"
-                        />
+                        <p className="text-sm font-medium text-gray-600">Active Events</p>
+                        <p className="text-3xl font-bold text-primary">{upcomingEvents}</p>
                       </div>
-                      <div>
-                        <Label htmlFor="category">Category</Label>
-                        <Input
-                          id="category"
-                          value={newEvent.category}
-                          onChange={(e) => setNewEvent({...newEvent, category: e.target.value})}
-                          placeholder="Enter category"
-                        />
+                      <Calendar className="h-8 w-8 text-primary" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Recent Activity */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Activity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                        <div>
+                          <p className="font-medium">New booking confirmed</p>
+                          <p className="text-sm text-gray-600">Tech Conference 2025 - John Doe</p>
+                        </div>
                       </div>
+                      <span className="text-sm text-gray-500">2 hours ago</span>
                     </div>
                     
-                    <div>
-                      <Label htmlFor="description">Description</Label>
-                      <Textarea
-                        id="description"
-                        value={newEvent.description}
-                        onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
-                        placeholder="Enter event description"
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="date">Date</Label>
-                        <Input
-                          id="date"
-                          type="date"
-                          value={newEvent.date}
-                          onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
-                        />
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Plus className="h-5 w-5 text-blue-500" />
+                        <div>
+                          <p className="font-medium">New event created</p>
+                          <p className="text-sm text-gray-600">AI & Cloud Tech Conference</p>
+                        </div>
                       </div>
-                      <div>
-                        <Label htmlFor="time">Time</Label>
-                        <Input
-                          id="time"
-                          type="time"
-                          value={newEvent.time}
-                          onChange={(e) => setNewEvent({...newEvent, time: e.target.value})}
-                        />
+                      <span className="text-sm text-gray-500">5 hours ago</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Users className="h-5 w-5 text-purple-500" />
+                        <div>
+                          <p className="font-medium">New user registered</p>
+                          <p className="text-sm text-gray-600">jane.smith@example.com</p>
+                        </div>
                       </div>
+                      <span className="text-sm text-gray-500">1 day ago</span>
                     </div>
-                    
-                    <div>
-                      <Label htmlFor="location">Location</Label>
-                      <Input
-                        id="location"
-                        value={newEvent.location}
-                        onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
-                        placeholder="Enter event location"
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="price">Price ($)</Label>
-                        <Input
-                          id="price"
-                          type="number"
-                          value={newEvent.price}
-                          onChange={(e) => setNewEvent({...newEvent, price: e.target.value})}
-                          placeholder="0"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="totalSeats">Total Seats</Label>
-                        <Input
-                          id="totalSeats"
-                          type="number"
-                          value={newEvent.totalSeats}
-                          onChange={(e) => setNewEvent({...newEvent, totalSeats: e.target.value})}
-                          placeholder="100"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="image">Image URL</Label>
-                      <Input
-                        id="image"
-                        value={newEvent.image}
-                        onChange={(e) => setNewEvent({...newEvent, image: e.target.value})}
-                        placeholder="https://..."
-                      />
-                    </div>
-                    
-                    <div className="flex justify-end space-x-2 pt-4">
-                      <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
-                        Cancel
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Events Management Tab */}
+            <TabsContent value="events">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="flex items-center">
+                    <BarChart3 className="mr-2 h-5 w-5" />
+                    Events Management
+                  </CardTitle>
+                  <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Event
                       </Button>
-                      <Button onClick={handleCreateEvent}>
-                        Create Event
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Event</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Seats</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {events.map((event) => (
-                    <TableRow key={event.id}>
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          <img 
-                            src={event.image} 
-                            alt={event.title}
-                            className="w-12 h-12 rounded object-cover"
-                          />
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>Create New Event</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 mt-4">
+                        <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <p className="font-medium">{event.title}</p>
-                            <p className="text-sm text-gray-600">{event.location}</p>
+                            <Label htmlFor="title">Event Title</Label>
+                            <Input
+                              id="title"
+                              value={newEvent.title}
+                              onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
+                              placeholder="Enter event title"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="category">Category</Label>
+                            <Input
+                              id="category"
+                              value={newEvent.category}
+                              onChange={(e) => setNewEvent({...newEvent, category: e.target.value})}
+                              placeholder="Enter category"
+                            />
                           </div>
                         </div>
-                      </TableCell>
-                      <TableCell>{new Date(event.date).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{event.category}</Badge>
-                      </TableCell>
-                      <TableCell>${event.price}</TableCell>
-                      <TableCell>{event.availableSeats}/{event.totalSeats}</TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                          >
-                            <Edit className="h-4 w-4" />
+                        
+                        <div>
+                          <Label htmlFor="description">Description</Label>
+                          <Textarea
+                            id="description"
+                            value={newEvent.description}
+                            onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
+                            placeholder="Enter event description"
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="date">Date</Label>
+                            <Input
+                              id="date"
+                              type="date"
+                              value={newEvent.date}
+                              onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="time">Time</Label>
+                            <Input
+                              id="time"
+                              type="time"
+                              value={newEvent.time}
+                              onChange={(e) => setNewEvent({...newEvent, time: e.target.value})}
+                            />
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="location">Location</Label>
+                          <Input
+                            id="location"
+                            value={newEvent.location}
+                            onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
+                            placeholder="Enter event location"
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="price">Price ($)</Label>
+                            <Input
+                              id="price"
+                              type="number"
+                              value={newEvent.price}
+                              onChange={(e) => setNewEvent({...newEvent, price: e.target.value})}
+                              placeholder="0"
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="totalSeats">Total Seats</Label>
+                            <Input
+                              id="totalSeats"
+                              type="number"
+                              value={newEvent.totalSeats}
+                              onChange={(e) => setNewEvent({...newEvent, totalSeats: e.target.value})}
+                              placeholder="100"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="image">Image URL</Label>
+                          <Input
+                            id="image"
+                            value={newEvent.image}
+                            onChange={(e) => setNewEvent({...newEvent, image: e.target.value})}
+                            placeholder="https://..."
+                          />
+                        </div>
+                        
+                        <div className="flex justify-end space-x-2 pt-4">
+                          <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+                            Cancel
                           </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteEvent(event.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
+                          <Button onClick={handleCreateEvent}>
+                            Create Event
                           </Button>
                         </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Event</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Price</TableHead>
+                        <TableHead>Seats</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {events.map((event) => (
+                        <TableRow key={event.id}>
+                          <TableCell>
+                            <div className="flex items-center space-x-3">
+                              <img 
+                                src={event.image} 
+                                alt={event.title}
+                                className="w-12 h-12 rounded object-cover"
+                              />
+                              <div>
+                                <p className="font-medium">{event.title}</p>
+                                <p className="text-sm text-gray-600">{event.location}</p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>{new Date(event.date).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <Badge variant="secondary">{event.category}</Badge>
+                          </TableCell>
+                          <TableCell>${event.price}</TableCell>
+                          <TableCell>{event.availableSeats}/{event.totalSeats}</TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteEvent(event.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* User Management Tab */}
+            <TabsContent value="users">
+              <AdminUserManagement />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     );
