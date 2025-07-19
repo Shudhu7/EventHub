@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useCart } from '@/contexts/CartContext';
 import { ShoppingBag } from 'lucide-react';
+import EnhancedFooter from '@/components/EnhancedFooter';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -170,6 +171,7 @@ const ProductDetail: React.FC = () => {
           </div>
         </div>
       </div>
+      <EnhancedFooter />
     </div>
   );
 };

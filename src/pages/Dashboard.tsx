@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import EnhancedFooter from '@/components/EnhancedFooter';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
@@ -734,6 +736,7 @@ const Dashboard: React.FC = () => {
           <p className="text-lg text-gray-600">You don't have permission to access this page.</p>
         </div>
       </div>
+      <EnhancedFooter />
     </div>
   );
 };

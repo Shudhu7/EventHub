@@ -6,6 +6,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import Navbar from '@/components/Navbar';
 import { events } from '@/data/events';
 import { useAuth } from '@/contexts/AuthContext';
+import EnhancedFooter from '@/components/EnhancedFooter';
+
 import { Calendar, MapPin, Users, Clock, ArrowLeft, Ticket } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -188,6 +190,7 @@ const EventDetails: React.FC = () => {
           </div>
         </div>
       </div>
+      <EnhancedFooter />
     </div>
   );
 };

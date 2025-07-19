@@ -4,6 +4,8 @@ import Header from '@/components/Header';
 import ProductCard from '@/components/ProductCard';
 import { products, categories } from '@/data/products';
 import { Button } from '@/components/ui/button';
+import EnhancedFooter from '@/components/EnhancedFooter';
+
 
 const Shop: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -75,6 +77,7 @@ const Shop: React.FC = () => {
           </div>
         )}
       </div>
+      <EnhancedFooter />
     </div>
   );
 };

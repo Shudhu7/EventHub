@@ -1,10 +1,9 @@
-// src/components/Navbar.tsx - Simplified working version
+// Updated src/components/Navbar.tsx - Add wishlist link
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Calendar, User, LogOut, Settings, Ticket } from 'lucide-react';
+import { Calendar, User, LogOut, Settings, Ticket, Heart } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTheme } from '@/contexts/ThemeContext';
 import { useWishlist } from '@/contexts/WishlistContext';
 import ThemeToggle from '@/components/ThemeToggle';
 import {
@@ -58,6 +57,18 @@ const Navbar: React.FC = () => {
             >
               Events
             </Link>
+            <Link
+              to="/wishlist"
+              className="text-gray-700 hover:text-primary transition-colors flex items-center gap-1"
+            >
+              <Heart className="h-4 w-4" />
+              Wishlist
+              {wishlist.length > 0 && (
+                <span className="bg-primary text-white text-xs rounded-full px-2 py-1 ml-1">
+                  {wishlist.length}
+                </span>
+              )}
+            </Link>
             {isAuthenticated && (
               <Link
                 to="/my-bookings"
@@ -98,6 +109,17 @@ const Navbar: React.FC = () => {
                     <span className="font-medium">{user?.name}</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/wishlist">
+                      <Heart className="w-4 h-4 mr-2" />
+                      Wishlist
+                      {wishlist.length > 0 && (
+                        <span className="bg-primary text-white text-xs rounded-full px-2 py-1 ml-auto">
+                          {wishlist.length}
+                        </span>
+                      )}
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/my-bookings">
                       <Ticket className="w-4 h-4 mr-2" />

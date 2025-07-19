@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { Calendar, Mail, Lock, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import EnhancedFooter from '@/components/EnhancedFooter';
+
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -188,7 +190,9 @@ const Register: React.FC = () => {
           </Link>
         </div>
       </div>
+      <EnhancedFooter />
     </div>
+    
   );
 };
 

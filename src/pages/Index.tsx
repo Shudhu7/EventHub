@@ -7,6 +7,8 @@ import Header from '@/components/Header';
 import ProductCard from '@/components/ProductCard';
 import { products } from '@/data/products';
 import { ShoppingBag, Store, ShoppingCart } from 'lucide-react';
+import EnhancedFooter from '@/components/EnhancedFooter';
+
 
 const Index: React.FC = () => {
   const featuredProducts = products.slice(0, 3);
@@ -139,6 +141,7 @@ const Index: React.FC = () => {
             </p>
           </div>
         </div>
+        <EnhancedFooter />
       </footer>
     </div>
   );

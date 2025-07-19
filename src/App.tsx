@@ -18,6 +18,7 @@ import Index from "./pages/Index";
 import Shop from "./pages/Shop";
 import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
+import Wishlist from "./pages/Wishlist"; // Add this import
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
                   <Route path="/shop" element={<Shop />} />
                   <Route path="/product/:id" element={<ProductDetail />} />
                   <Route path="/cart" element={<Cart />} />
+                  <Route path="/wishlist" element={<Wishlist />} /> {/* Add this route */}
                   <Route path="/virtumart" element={<Index />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

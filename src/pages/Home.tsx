@@ -7,6 +7,8 @@ import Navbar from '@/components/Navbar';
 import EventCard from '@/components/EventCard';
 import { events, categories } from '@/data/events';
 import { Search, Calendar, Users, MapPin } from 'lucide-react';
+import EnhancedFooter from '@/components/EnhancedFooter';
+
 
 const Home: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -178,6 +180,7 @@ const Home: React.FC = () => {
           )}
         </div>
       </section>
+      <EnhancedFooter />
     </div>
   );
 };

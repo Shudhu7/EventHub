@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { Calendar, Mail, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import EnhancedFooter from '@/components/EnhancedFooter';
+
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -141,6 +143,7 @@ const Login: React.FC = () => {
           </Link>
         </div>
       </div>
+      <EnhancedFooter />
     </div>
   );
 };

@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useCart } from '@/contexts/CartContext';
 import { ShoppingBag, Trash2 } from 'lucide-react';
+import EnhancedFooter from '@/components/EnhancedFooter';
+
 
 const Cart: React.FC = () => {
   const navigate = useNavigate();
@@ -125,6 +127,7 @@ const Cart: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+      <EnhancedFooter />
     </div>
   );
 };

@@ -11,6 +11,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ArrowLeft, Ticket, CreditCard, Calendar, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { UserBooking } from '@/types/event';
+import EnhancedFooter from '@/components/EnhancedFooter';
+
 
 const BookingForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();

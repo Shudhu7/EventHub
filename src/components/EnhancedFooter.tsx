@@ -1,5 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import { 
   Calendar, 
   Mail, 
@@ -55,6 +57,18 @@ const EnhancedFooter: React.FC = () => {
         { label: "Dashboard", href: "/dashboard" },
         { label: "Profile Settings", href: "/profile" }
       ]
+    }
+  };
+
+  const [email, setEmail] = React.useState('');
+
+  const handleNewsletterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email) {
+      // Add your newsletter subscription logic here
+      console.log('Newsletter subscription:', email);
+      alert(`Thank you for subscribing with ${email}!`);
+      setEmail('');
     }
   };
 
@@ -152,6 +166,31 @@ const EnhancedFooter: React.FC = () => {
               </ul>
             </div>
           ))}
+        </div>
+
+        {/* Newsletter Signup */}
+        <Separator className="my-8 bg-gray-700" />
+        <div className="text-center">
+          <h3 className="text-xl font-semibold mb-2">Stay Updated</h3>
+          <p className="text-gray-300 mb-4">
+            Subscribe to our newsletter for the latest events and exclusive offers
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              className="flex-1 px-4 py-3 rounded-md bg-gray-800 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            />
+            <Button 
+              onClick={handleNewsletterSubmit} 
+              className="px-6 whitespace-nowrap"
+              disabled={!email}
+            >
+              Subscribe
+            </Button>
+          </div>
         </div>
       </div>
 
