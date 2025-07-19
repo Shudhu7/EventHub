@@ -22,7 +22,7 @@ const NotFound = () => {
           Return to Home
         </a>
       </div>
-      <EnhancedFooter />
+      
     </div>
   );
 };

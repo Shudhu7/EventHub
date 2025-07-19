@@ -190,7 +190,7 @@ const Register: React.FC = () => {
           </Link>
         </div>
       </div>
-      <EnhancedFooter />
+    
     </div>
     
   );

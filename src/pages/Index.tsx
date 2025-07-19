@@ -141,7 +141,7 @@ const Index: React.FC = () => {
             </p>
           </div>
         </div>
-        <EnhancedFooter />
+       
       </footer>
     </div>
   );

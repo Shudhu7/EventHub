@@ -1,4 +1,4 @@
-// src/pages/Home.tsx - Simplified working version
+// src/pages/Home.tsx - Hero section with consistent navy blue color
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,6 @@ import EventCard from '@/components/EventCard';
 import { events, categories } from '@/data/events';
 import { Search, Calendar, Users, MapPin } from 'lucide-react';
 import EnhancedFooter from '@/components/EnhancedFooter';
-
 
 const Home: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -34,11 +33,12 @@ const Home: React.FC = () => {
   }, [searchTerm, selectedCategory, searchDate, searchLocation]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
       
+
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-primary to-primary/80 text-white">
+      <section className="text-white" style={{ background: 'linear-gradient(to right, #0A1F44, #0d2757)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
@@ -51,8 +51,9 @@ const Home: React.FC = () => {
         </div>
       </section>
 
+
       {/* Search Section */}
-      <section className="py-8 bg-white shadow-sm">
+      <section className="py-8 bg-white dark:bg-gray-800 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative">
@@ -101,7 +102,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* Categories */}
-      <section className="py-6 bg-white border-b">
+      <section className="py-6 bg-white dark:bg-gray-800 border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap gap-2">
             {categories.map(category => (
@@ -119,36 +120,36 @@ const Home: React.FC = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-12 bg-white">
+      <section className="py-12 bg-white dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card>
               <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Calendar className="h-6 w-6 text-primary" />
+                <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Calendar className="h-6 w-6 text-slate-700 dark:text-slate-300" />
                 </div>
-                <h3 className="text-2xl font-bold text-primary mb-2">{events.length}+</h3>
-                <p className="text-gray-600">Events Available</p>
+                <h3 className="text-2xl font-bold text-slate-700 dark:text-slate-300 mb-2">{events.length}+</h3>
+                <p className="text-gray-600 dark:text-gray-300">Events Available</p>
               </CardContent>
             </Card>
             
             <Card>
               <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Users className="h-6 w-6 text-primary" />
+                <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Users className="h-6 w-6 text-slate-700 dark:text-slate-300" />
                 </div>
-                <h3 className="text-2xl font-bold text-primary mb-2">5K+</h3>
-                <p className="text-gray-600">Happy Customers</p>
+                <h3 className="text-2xl font-bold text-slate-700 dark:text-slate-300 mb-2">5K+</h3>
+                <p className="text-gray-600 dark:text-gray-300">Happy Customers</p>
               </CardContent>
             </Card>
             
             <Card>
               <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MapPin className="h-6 w-6 text-primary" />
+                <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MapPin className="h-6 w-6 text-slate-700 dark:text-slate-300" />
                 </div>
-                <h3 className="text-2xl font-bold text-primary mb-2">10+</h3>
-                <p className="text-gray-600">Cities Covered</p>
+                <h3 className="text-2xl font-bold text-slate-700 dark:text-slate-300 mb-2">10+</h3>
+                <p className="text-gray-600 dark:text-gray-300">Cities Covered</p>
               </CardContent>
             </Card>
           </div>
@@ -159,10 +160,10 @@ const Home: React.FC = () => {
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
               {selectedCategory === 'All' ? 'All Events' : `${selectedCategory} Events`}
             </h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-gray-600 dark:text-gray-300">
               {filteredEvents.length} events found
             </p>
           </div>
@@ -175,7 +176,7 @@ const Home: React.FC = () => {
 
           {filteredEvents.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-lg text-gray-600">No events found matching your criteria.</p>
+              <p className="text-lg text-gray-600 dark:text-gray-300">No events found matching your criteria.</p>
             </div>
           )}
         </div>

@@ -143,7 +143,7 @@ const Login: React.FC = () => {
           </Link>
         </div>
       </div>
-      <EnhancedFooter />
+      
     </div>
   );
 };
