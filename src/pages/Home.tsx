@@ -1,5 +1,5 @@
-// src/pages/Home.tsx - Hero section with consistent navy blue color
-import React, { useState, useMemo } from 'react';
+// src/pages/Home.tsx - Enhanced with auto-scroll functionality
+import React, { useState, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,6 +14,9 @@ const Home: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchDate, setSearchDate] = useState('');
   const [searchLocation, setSearchLocation] = useState('');
+  
+  // Ref for the events section
+  const eventsRef = useRef<HTMLElement>(null);
 
   const filteredEvents = useMemo(() => {
     return events.filter(event => {
@@ -32,11 +35,42 @@ const Home: React.FC = () => {
     });
   }, [searchTerm, selectedCategory, searchDate, searchLocation]);
 
+  // Enhanced category selection with auto-scroll
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+    
+    // Auto-scroll to events section after a brief delay to allow state update
+    setTimeout(() => {
+      if (eventsRef.current) {
+        eventsRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      }
+    }, 100);
+  };
+
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setSearchDate('');
+    setSearchLocation('');
+    setSelectedCategory('All');
+    
+    // Scroll to events section after clearing filters
+    setTimeout(() => {
+      if (eventsRef.current) {
+        eventsRef.current.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      }
+    }, 100);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
       
-
       {/* Hero Section */}
       <section className="text-white" style={{ background: 'linear-gradient(to right, #0A1F44, #0d2757)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -50,7 +84,6 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
-
 
       {/* Search Section */}
       <section className="py-8 bg-white dark:bg-gray-800 shadow-sm">
@@ -87,12 +120,7 @@ const Home: React.FC = () => {
             </div>
             
             <Button 
-              onClick={() => {
-                setSearchTerm('');
-                setSearchDate('');
-                setSearchLocation('');
-                setSelectedCategory('All');
-              }}
+              onClick={clearAllFilters}
               variant="outline"
             >
               Clear Filters
@@ -101,16 +129,21 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Categories */}
-      <section className="py-6 bg-white dark:bg-gray-800 border-b">
+      {/* Categories Section with Enhanced Styling */}
+      <section className="py-6 bg-white dark:bg-gray-800 border-b sticky top-16 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 justify-center md:justify-start">
             {categories.map(category => (
               <Button
                 key={category}
                 variant={selectedCategory === category ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSelectedCategory(category)}
+                onClick={() => handleCategorySelect(category)}
+                className={`transition-all duration-200 ${
+                  selectedCategory === category 
+                    ? 'shadow-md transform scale-105' 
+                    : 'hover:shadow-sm hover:scale-102'
+                }`}
               >
                 {category}
               </Button>
@@ -156,32 +189,69 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Events Grid */}
-      <section className="py-12">
+      {/* Events Grid Section with ref for auto-scroll */}
+      <section ref={eventsRef} className="py-12 scroll-mt-24" id="events-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
               {selectedCategory === 'All' ? 'All Events' : `${selectedCategory} Events`}
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300">
-              {filteredEvents.length} events found
+              {filteredEvents.length} event{filteredEvents.length !== 1 ? 's' : ''} found
             </p>
+            
+            {/* Category indicator with animation */}
+            {selectedCategory !== 'All' && (
+              <div className="mt-4 animate-fade-in">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary">
+                  Showing {selectedCategory} events
+                </span>
+              </div>
+            )}
           </div>
           
+          {/* Events Grid with loading animation */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredEvents.map((event) => (
-              <EventCard key={event.id} event={event} />
+            {filteredEvents.map((event, index) => (
+              <div 
+                key={event.id} 
+                className="animate-slide-up"
+                style={{ 
+                  animationDelay: `${index * 100}ms`,
+                  animationFillMode: 'both'
+                }}
+              >
+                <EventCard event={event} />
+              </div>
             ))}
           </div>
 
           {filteredEvents.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-lg text-gray-600 dark:text-gray-300">No events found matching your criteria.</p>
+            <div className="text-center py-12 animate-fade-in">
+              <div className="max-w-md mx-auto">
+                <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  No events found
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  {selectedCategory === 'All' 
+                    ? "No events match your search criteria. Try adjusting your filters."
+                    : `No ${selectedCategory.toLowerCase()} events found. Try browsing other categories.`
+                  }
+                </p>
+                <Button onClick={clearAllFilters} variant="outline">
+                  Clear all filters
+                </Button>
+              </div>
             </div>
           )}
         </div>
       </section>
+      
       <EnhancedFooter />
+      
+      {/* Add custom CSS animations */}
+     
     </div>
   );
 };

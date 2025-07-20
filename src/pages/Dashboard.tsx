@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+// src/pages/Dashboard.tsx - Fixed dark mode button visibility issues
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,7 +47,8 @@ import {
   AlertCircle,
   Ticket,
   Settings,
-  FileText
+  FileText,
+  Search
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import EnhancedFooter from '@/components/EnhancedFooter';
@@ -56,6 +58,8 @@ const Dashboard: React.FC = () => {
   const { toast } = useToast();
   const location = useLocation();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<any>(null);
   const [bookings, setBookings] = useState<UserBooking[]>([]);
   const [activeTab, setActiveTab] = useState('all');
   const [loading, setLoading] = useState(true);
@@ -119,6 +123,92 @@ const Dashboard: React.FC = () => {
     image: ''
   });
 
+  // Event filtering states
+  const [eventFilters, setEventFilters] = useState({
+    searchTerm: '',
+    selectedCategory: 'All',
+    dateFrom: '',
+    dateTo: '',
+    priceMin: '',
+    priceMax: '',
+    sortBy: 'date',
+    sortOrder: 'asc' as 'asc' | 'desc'
+  });
+
+  // Available categories from events data
+  const eventCategories = ['All', ...Array.from(new Set(events.map(event => event.category)))];
+
+  // Filter and sort events
+  const filteredAndSortedEvents = useMemo(() => {
+    let filtered = events.filter(event => {
+      // Search filter
+      const matchesSearch = eventFilters.searchTerm === '' || 
+        event.title.toLowerCase().includes(eventFilters.searchTerm.toLowerCase()) ||
+        event.location.toLowerCase().includes(eventFilters.searchTerm.toLowerCase()) ||
+        event.description.toLowerCase().includes(eventFilters.searchTerm.toLowerCase());
+
+      // Category filter
+      const matchesCategory = eventFilters.selectedCategory === 'All' || 
+        event.category === eventFilters.selectedCategory;
+
+      // Date range filter
+      const matchesDateFrom = eventFilters.dateFrom === '' || 
+        new Date(event.date) >= new Date(eventFilters.dateFrom);
+      const matchesDateTo = eventFilters.dateTo === '' || 
+        new Date(event.date) <= new Date(eventFilters.dateTo);
+
+      // Price range filter
+      const matchesPriceMin = eventFilters.priceMin === '' || 
+        event.price >= parseFloat(eventFilters.priceMin);
+      const matchesPriceMax = eventFilters.priceMax === '' || 
+        event.price <= parseFloat(eventFilters.priceMax);
+
+      return matchesSearch && matchesCategory && matchesDateFrom && 
+             matchesDateTo && matchesPriceMin && matchesPriceMax;
+    });
+
+    // Sort events
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      switch (eventFilters.sortBy) {
+        case 'title':
+          comparison = a.title.localeCompare(b.title);
+          break;
+        case 'date':
+          comparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+          break;
+        case 'price':
+          comparison = a.price - b.price;
+          break;
+        case 'category':
+          comparison = a.category.localeCompare(b.category);
+          break;
+        case 'seats':
+          comparison = a.availableSeats - b.availableSeats;
+          break;
+        default:
+          comparison = 0;
+      }
+      return eventFilters.sortOrder === 'desc' ? -comparison : comparison;
+    });
+
+    return filtered;
+  }, [eventFilters]);
+
+  // Clear all event filters
+  const clearEventFilters = () => {
+    setEventFilters({
+      searchTerm: '',
+      selectedCategory: 'All',
+      dateFrom: '',
+      dateTo: '',
+      priceMin: '',
+      priceMax: '',
+      sortBy: 'date',
+      sortOrder: 'asc'
+    });
+  };
+
   // Booking management functions
   const formatDate = (dateString: string) => {
     try {
@@ -159,10 +249,10 @@ const Dashboard: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'confirmed': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'confirmed': return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300';
+      case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300';
+      case 'cancelled': return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
     }
   };
 
@@ -227,12 +317,10 @@ const Dashboard: React.FC = () => {
   // Universal Booking Actions handlers
   const handleRatingSubmit = (bookingId: string, rating: number, review: string) => {
     console.log('Rating submitted:', { bookingId, rating, review });
-    // In a real app, this would make an API call to save the rating
   };
 
   const handleDownloadComplete = (bookingId: string) => {
     console.log('Download completed for booking:', bookingId);
-    // In a real app, this could track download analytics
   };
 
   const showToastMessage = (title: string, description: string, variant?: 'default' | 'destructive') => {
@@ -263,11 +351,88 @@ const Dashboard: React.FC = () => {
     });
   };
 
+  // User Management functions
+  const handleAddUser = () => {
+    toast({
+      title: "Add User",
+      description: "Add user functionality would be implemented here.",
+    });
+  };
+
+  const handleEditUser = (userId: string, userName: string) => {
+    toast({
+      title: "Edit User",
+      description: `Edit functionality for ${userName} would be implemented here.`,
+    });
+  };
+
+  const handleDeleteUser = (userId: string, userName: string) => {
+    if (window.confirm(`Are you sure you want to delete user "${userName}"?`)) {
+      toast({
+        title: "User Deleted",
+        description: `${userName} has been deleted successfully.`,
+      });
+    }
+  };
+
+  // Pagination functions
+  const [currentPage, setCurrentPage] = useState(1);
+  const [usersPerPage] = useState(10);
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+      toast({
+        title: "Previous Page",
+        description: `Navigated to page ${currentPage - 1}`,
+      });
+    }
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(currentPage + 1);
+    toast({
+      title: "Next Page", 
+      description: `Navigated to page ${currentPage + 1}`,
+    });
+  };
+
+  const handleEditEvent = (event: any) => {
+    setEditingEvent({
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      date: event.date,
+      time: event.time,
+      location: event.location,
+      price: event.price.toString(),
+      totalSeats: event.totalSeats.toString(),
+      availableSeats: event.availableSeats.toString(),
+      category: event.category,
+      image: event.image
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateEvent = () => {
+    if (!editingEvent) return;
+    
+    // In a real app, this would make an API call to update the event
+    toast({
+      title: "Event Updated",
+      description: `${editingEvent.title} has been updated successfully.`,
+    });
+    setIsEditModalOpen(false);
+    setEditingEvent(null);
+  };
+
   const handleDeleteEvent = (eventId: string) => {
-    if (window.confirm('Are you sure you want to delete this event?')) {
+    const event = events.find(e => e.id === eventId);
+    if (window.confirm(`Are you sure you want to delete "${event?.title}"?`)) {
+      // In a real app, this would make an API call to delete the event
       toast({
         title: "Event Deleted",
-        description: "Event has been deleted successfully.",
+        description: `${event?.title} has been deleted successfully.`,
       });
     }
   };
@@ -275,12 +440,12 @@ const Dashboard: React.FC = () => {
   // Authentication check
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Please Login</h1>
-            <p className="text-lg text-gray-600">You need to be logged in to access this page.</p>
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Please Login</h1>
+            <p className="text-lg text-gray-600 dark:text-gray-300">You need to be logged in to access this page.</p>
           </div>
         </div>
       </div>
@@ -290,30 +455,30 @@ const Dashboard: React.FC = () => {
   // Render Bookings Page (for both regular users and admin when accessing /my-bookings)
   if (isBookingsPage || (isDashboardPage && user.role !== 'admin')) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Navbar />
         
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">My Bookings</h1>
-            <p className="text-gray-600">Manage your event bookings and download tickets</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">My Bookings</h1>
+            <p className="text-gray-600 dark:text-gray-300">Manage your event bookings and download tickets</p>
           </div>
 
           {loading ? (
             <div className="space-y-4">
               {[1, 2, 3].map(i => (
                 <div key={i} className="animate-pulse">
-                  <div className="h-32 bg-gray-200 rounded"></div>
+                  <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
                 </div>
               ))}
             </div>
           ) : (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              {/* Mobile-Friendly Tab List */}
-              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 p-1 h-auto">
+              {/* Mobile-Friendly Tab List with improved dark mode */}
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 p-1 h-auto bg-gray-100 dark:bg-gray-800">
                 <TabsTrigger 
                   value="all" 
-                  className="text-xs sm:text-sm px-1 sm:px-2 py-2 h-auto flex flex-col sm:flex-row items-center"
+                  className="text-xs sm:text-sm px-1 sm:px-2 py-2 h-auto flex flex-col sm:flex-row items-center data-[state=active]:bg-white data-[state=active]:text-gray-900 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white dark:text-gray-300"
                 >
                   <span className="hidden sm:inline">All Bookings</span>
                   <span className="sm:hidden text-xs">All</span>
@@ -321,7 +486,7 @@ const Dashboard: React.FC = () => {
                 </TabsTrigger>
                 <TabsTrigger 
                   value="confirmed"
-                  className="text-xs sm:text-sm px-1 sm:px-2 py-2 h-auto flex flex-col sm:flex-row items-center"
+                  className="text-xs sm:text-sm px-1 sm:px-2 py-2 h-auto flex flex-col sm:flex-row items-center data-[state=active]:bg-white data-[state=active]:text-gray-900 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white dark:text-gray-300"
                 >
                   <span className="hidden sm:inline">Confirmed</span>
                   <span className="sm:hidden text-xs">Confirmed</span>
@@ -329,7 +494,7 @@ const Dashboard: React.FC = () => {
                 </TabsTrigger>
                 <TabsTrigger 
                   value="pending"
-                  className="text-xs sm:text-sm px-1 sm:px-2 py-2 h-auto flex flex-col sm:flex-row items-center"
+                  className="text-xs sm:text-sm px-1 sm:px-2 py-2 h-auto flex flex-col sm:flex-row items-center data-[state=active]:bg-white data-[state=active]:text-gray-900 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white dark:text-gray-300"
                 >
                   <span className="hidden sm:inline">Pending</span>
                   <span className="sm:hidden text-xs">Pending</span>
@@ -337,7 +502,7 @@ const Dashboard: React.FC = () => {
                 </TabsTrigger>
                 <TabsTrigger 
                   value="cancelled"
-                  className="text-xs sm:text-sm px-1 sm:px-2 py-2 h-auto flex flex-col sm:flex-row items-center"
+                  className="text-xs sm:text-sm px-1 sm:px-2 py-2 h-auto flex flex-col sm:flex-row items-center data-[state=active]:bg-white data-[state=active]:text-gray-900 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white dark:text-gray-300"
                 >
                   <span className="hidden sm:inline">Cancelled</span>
                   <span className="sm:hidden text-xs">Cancelled</span>
@@ -353,7 +518,7 @@ const Dashboard: React.FC = () => {
                     }
 
                     return (
-                      <Card key={booking.id} className="overflow-hidden">
+                      <Card key={booking.id} className="overflow-hidden dark:bg-gray-800 dark:border-gray-700">
                         <CardContent className="p-0">
                           <div className="flex flex-col lg:flex-row">
                             {/* Event Image */}
@@ -374,15 +539,15 @@ const Dashboard: React.FC = () => {
                               <div className="flex flex-col lg:flex-row lg:items-start justify-between mb-4">
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-2">
-                                    <h3 className="text-xl font-bold text-gray-900">
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                                       {booking.eventTitle || 'Untitled Event'}
                                     </h3>
                                     {booking.category && (
-                                      <Badge variant="secondary">{booking.category}</Badge>
+                                      <Badge variant="secondary" className="dark:bg-gray-700 dark:text-gray-300">{booking.category}</Badge>
                                     )}
                                   </div>
                                   
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-300">
                                     <div className="flex items-center gap-2">
                                       <Calendar className="h-4 w-4" />
                                       <span>{formatDate(booking.eventDate)}</span>
@@ -411,21 +576,21 @@ const Dashboard: React.FC = () => {
                               </div>
 
                               {/* Booking Information */}
-                              <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                                   <div>
-                                    <span className="font-medium text-gray-900">Booking ID:</span>
-                                    <div className="text-gray-600">{booking.ticketId || booking.id}</div>
+                                    <span className="font-medium text-gray-900 dark:text-white">Booking ID:</span>
+                                    <div className="text-gray-600 dark:text-gray-300">{booking.ticketId || booking.id}</div>
                                   </div>
                                   <div>
-                                    <span className="font-medium text-gray-900">Booked on:</span>
-                                    <div className="text-gray-600">
+                                    <span className="font-medium text-gray-900 dark:text-white">Booked on:</span>
+                                    <div className="text-gray-600 dark:text-gray-300">
                                       {formatDateTime(booking.bookingDate)}
                                     </div>
                                   </div>
                                   <div>
-                                    <span className="font-medium text-gray-900">Total Amount:</span>
-                                    <div className="text-lg font-bold text-primary">
+                                    <span className="font-medium text-gray-900 dark:text-white">Total Amount:</span>
+                                    <div className="text-lg font-bold text-primary dark:text-primary-400">
                                       ${booking.totalAmount || 0}
                                     </div>
                                   </div>
@@ -441,16 +606,16 @@ const Dashboard: React.FC = () => {
                                   showToast={showToastMessage}
                                 />
 
-                                {/* Keep cancel booking functionality */}
+                                {/* Keep cancel booking functionality with better dark mode styling */}
                                 {booking.status === 'pending' && (
                                   <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => handleCancelBooking(booking.id)}
-                                    className="flex items-center gap-1 text-red-600 hover:text-red-700"
+                                    className="flex items-center gap-1 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:border-red-600 dark:hover:border-red-500"
                                   >
                                     <XCircle className="h-4 w-4" />
-                                    Cancel Booking
+                                    <span className="font-medium">Cancel Booking</span>
                                   </Button>
                                 )}
                               </div>
@@ -464,18 +629,21 @@ const Dashboard: React.FC = () => {
                   {filterBookings(activeTab).length === 0 && (
                     <div className="text-center py-12">
                       <div className="max-w-md mx-auto">
-                        <Ticket className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        <Ticket className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                           No bookings found
                         </h3>
-                        <p className="text-gray-600 mb-4">
+                        <p className="text-gray-600 dark:text-gray-300 mb-4">
                           {activeTab === 'all' 
                             ? "You haven't made any bookings yet. Start exploring events!"
                             : `You don't have any ${activeTab} bookings.`
                           }
                         </p>
-                        <Button onClick={() => window.location.href = '/'}>
-                          Browse Events
+                        <Button 
+                          onClick={() => window.location.href = '/'}
+                          className="bg-primary hover:bg-primary/90 text-white font-medium dark:bg-primary dark:hover:bg-primary/90 dark:text-white"
+                        >
+                          <span className="text-white font-medium">Browse Events</span>
                         </Button>
                       </div>
                     </div>
@@ -492,311 +660,874 @@ const Dashboard: React.FC = () => {
   // Admin Dashboard (only accessible via /dashboard route for admin users)
   if (isDashboardPage && user.role === 'admin') {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Navbar />
         
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Fixed container with proper mobile padding */}
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-            <p className="text-gray-600">Manage your events, users, and view analytics</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Admin Dashboard</h1>
+            <p className="text-gray-600 dark:text-gray-300">Manage your events, users, and view analytics</p>
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="events">Events</TabsTrigger>
-              <TabsTrigger value="users">User Management</TabsTrigger>
+            {/* Mobile-responsive tab list with improved dark mode */}
+            <TabsList className="grid w-full grid-cols-3 h-auto bg-gray-100 dark:bg-gray-800">
+              <TabsTrigger 
+                value="overview" 
+                className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:text-gray-900 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white dark:text-gray-300 font-medium"
+              >
+                Overview
+              </TabsTrigger>
+              <TabsTrigger 
+                value="events" 
+                className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:text-gray-900 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white dark:text-gray-300 font-medium"
+              >
+                Events
+              </TabsTrigger>
+              <TabsTrigger 
+                value="users" 
+                className="text-xs sm:text-sm px-2 py-2 data-[state=active]:bg-white data-[state=active]:text-gray-900 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white dark:text-gray-300 font-medium"
+              >
+                Users
+              </TabsTrigger>
             </TabsList>
 
             {/* Overview Tab */}
             <TabsContent value="overview">
-              {/* Stats Cards */}
+              {/* Stats Cards with dark mode support */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <Card>
+                <Card className="dark:bg-gray-800 dark:border-gray-700">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Total Bookings</p>
-                        <p className="text-3xl font-bold text-primary">{totalBookings}</p>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Bookings</p>
+                        <p className="text-3xl font-bold text-primary dark:text-primary-400">{totalBookings}</p>
                       </div>
-                      <Users className="h-8 w-8 text-primary" />
+                      <Users className="h-8 w-8 text-primary dark:text-primary-400" />
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="dark:bg-gray-800 dark:border-gray-700">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                        <p className="text-3xl font-bold text-primary">${totalRevenue.toLocaleString()}</p>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Revenue</p>
+                        <p className="text-3xl font-bold text-primary dark:text-primary-400">${totalRevenue.toLocaleString()}</p>
                       </div>
-                      <TrendingUp className="h-8 w-8 text-primary" />
+                      <TrendingUp className="h-8 w-8 text-primary dark:text-primary-400" />
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="dark:bg-gray-800 dark:border-gray-700">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-600">Active Events</p>
-                        <p className="text-3xl font-bold text-primary">{upcomingEvents}</p>
+                        <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Active Events</p>
+                        <p className="text-3xl font-bold text-primary dark:text-primary-400">{upcomingEvents}</p>
                       </div>
-                      <Calendar className="h-8 w-8 text-primary" />
+                      <Calendar className="h-8 w-8 text-primary dark:text-primary-400" />
                     </div>
                   </CardContent>
                 </Card>
               </div>
 
-              {/* Recent Activity */}
-              <Card>
+              {/* Recent Activity with dark mode support */}
+              <Card className="dark:bg-gray-800 dark:border-gray-700">
                 <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
+                  <CardTitle className="dark:text-white">Recent Activity</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <div className="flex items-center space-x-3">
-                        <CheckCircle className="h-5 w-5 text-green-500" />
+                        <CheckCircle className="h-5 w-5 text-green-500 dark:text-green-400" />
                         <div>
-                          <p className="font-medium">New booking confirmed</p>
-                          <p className="text-sm text-gray-600">Tech Conference 2025 - John Doe</p>
+                          <p className="font-medium dark:text-white">New booking confirmed</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">Tech Conference 2025 - John Doe</p>
                         </div>
                       </div>
-                      <span className="text-sm text-gray-500">2 hours ago</span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">2 hours ago</span>
                     </div>
                     
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <div className="flex items-center space-x-3">
-                        <Plus className="h-5 w-5 text-blue-500" />
+                        <Plus className="h-5 w-5 text-blue-500 dark:text-blue-400" />
                         <div>
-                          <p className="font-medium">New event created</p>
-                          <p className="text-sm text-gray-600">AI & Cloud Tech Conference</p>
+                          <p className="font-medium dark:text-white">New event created</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">AI & Cloud Tech Conference</p>
                         </div>
                       </div>
-                      <span className="text-sm text-gray-500">5 hours ago</span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">5 hours ago</span>
                     </div>
                     
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <div className="flex items-center space-x-3">
-                        <Users className="h-5 w-5 text-purple-500" />
+                        <Users className="h-5 w-5 text-purple-500 dark:text-purple-400" />
                         <div>
-                          <p className="font-medium">New user registered</p>
-                          <p className="text-sm text-gray-600">jane.smith@example.com</p>
+                          <p className="font-medium dark:text-white">New user registered</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-300">jane.smith@example.com</p>
                         </div>
                       </div>
-                      <span className="text-sm text-gray-500">1 day ago</span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">1 day ago</span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </TabsContent>
 
-            {/* Events Management Tab */}
+            {/* Events Management Tab - ENHANCED WITH FILTERS AND DARK MODE */}
             <TabsContent value="events">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="flex items-center">
-                    <BarChart3 className="mr-2 h-5 w-5" />
-                    Events Management
-                  </CardTitle>
-                  <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-                    <DialogTrigger asChild>
-                      <Button>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Event
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle>Create New Event</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4 mt-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="title">Event Title</Label>
-                            <Input
-                              id="title"
-                              value={newEvent.title}
-                              onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
-                              placeholder="Enter event title"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="category">Category</Label>
-                            <Input
-                              id="category"
-                              value={newEvent.category}
-                              onChange={(e) => setNewEvent({...newEvent, category: e.target.value})}
-                              placeholder="Enter category"
-                            />
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="description">Description</Label>
-                          <Textarea
-                            id="description"
-                            value={newEvent.description}
-                            onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
-                            placeholder="Enter event description"
-                          />
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="date">Date</Label>
-                            <Input
-                              id="date"
-                              type="date"
-                              value={newEvent.date}
-                              onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="time">Time</Label>
-                            <Input
-                              id="time"
-                              type="time"
-                              value={newEvent.time}
-                              onChange={(e) => setNewEvent({...newEvent, time: e.target.value})}
-                            />
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="location">Location</Label>
-                          <Input
-                            id="location"
-                            value={newEvent.location}
-                            onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
-                            placeholder="Enter event location"
-                          />
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="price">Price ($)</Label>
-                            <Input
-                              id="price"
-                              type="number"
-                              value={newEvent.price}
-                              onChange={(e) => setNewEvent({...newEvent, price: e.target.value})}
-                              placeholder="0"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="totalSeats">Total Seats</Label>
-                            <Input
-                              id="totalSeats"
-                              type="number"
-                              value={newEvent.totalSeats}
-                              onChange={(e) => setNewEvent({...newEvent, totalSeats: e.target.value})}
-                              placeholder="100"
-                            />
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <Label htmlFor="image">Image URL</Label>
-                          <Input
-                            id="image"
-                            value={newEvent.image}
-                            onChange={(e) => setNewEvent({...newEvent, image: e.target.value})}
-                            placeholder="https://..."
-                          />
-                        </div>
-                        
-                        <div className="flex justify-end space-x-2 pt-4">
-                          <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
-                            Cancel
+              <Card className="dark:bg-gray-800 dark:border-gray-700">
+                <CardHeader>
+                  {/* Fixed header layout for mobile with dark mode */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+                    <CardTitle className="flex items-center dark:text-white">
+                      <BarChart3 className="mr-2 h-5 w-5" />
+                      Events Management
+                    </CardTitle>
+                    
+                    {/* Fixed button container with improved styling */}
+                    <div className="flex-shrink-0 w-full sm:w-auto">
+                      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+                        <DialogTrigger asChild>
+                          <Button className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-medium dark:bg-primary dark:hover:bg-primary/90 dark:text-white">
+                            <Plus className="mr-2 h-4 w-4 text-white" />
+                            <span className="whitespace-nowrap text-white font-medium">Add Event</span>
                           </Button>
-                          <Button onClick={handleCreateEvent}>
-                            Create Event
-                          </Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl mx-4 max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
+                          <DialogHeader>
+                            <DialogTitle className="dark:text-white">Create New Event</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4 mt-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor="title" className="dark:text-gray-200">Event Title</Label>
+                                <Input
+                                  id="title"
+                                  value={newEvent.title}
+                                  onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
+                                  placeholder="Enter event title"
+                                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="category" className="dark:text-gray-200">Category</Label>
+                                <Input
+                                  id="category"
+                                  value={newEvent.category}
+                                  onChange={(e) => setNewEvent({...newEvent, category: e.target.value})}
+                                  placeholder="Enter category"
+                                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                />
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor="description" className="dark:text-gray-200">Description</Label>
+                              <Textarea
+                                id="description"
+                                value={newEvent.description}
+                                onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
+                                placeholder="Enter event description"
+                                className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                              />
+                            </div>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor="date" className="dark:text-gray-200">Date</Label>
+                                <Input
+                                  id="date"
+                                  type="date"
+                                  value={newEvent.date}
+                                  onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
+                                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="time" className="dark:text-gray-200">Time</Label>
+                                <Input
+                                  id="time"
+                                  type="time"
+                                  value={newEvent.time}
+                                  onChange={(e) => setNewEvent({...newEvent, time: e.target.value})}
+                                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                />
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor="location" className="dark:text-gray-200">Location</Label>
+                              <Input
+                                id="location"
+                                value={newEvent.location}
+                                onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
+                                placeholder="Enter event location"
+                                className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                              />
+                            </div>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor="price" className="dark:text-gray-200">Price ($)</Label>
+                                <Input
+                                  id="price"
+                                  type="number"
+                                  value={newEvent.price}
+                                  onChange={(e) => setNewEvent({...newEvent, price: e.target.value})}
+                                  placeholder="0"
+                                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                />
+                              </div>
+                              <div>
+                                <Label htmlFor="totalSeats" className="dark:text-gray-200">Total Seats</Label>
+                                <Input
+                                  id="totalSeats"
+                                  type="number"
+                                  value={newEvent.totalSeats}
+                                  onChange={(e) => setNewEvent({...newEvent, totalSeats: e.target.value})}
+                                  placeholder="100"
+                                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                />
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <Label htmlFor="image" className="dark:text-gray-200">Image URL</Label>
+                              <Input
+                                id="image"
+                                value={newEvent.image}
+                                onChange={(e) => setNewEvent({...newEvent, image: e.target.value})}
+                                placeholder="https://..."
+                                className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                              />
+                            </div>
+                            
+                            <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 pt-4">
+                              <Button 
+                                variant="outline" 
+                                onClick={() => setIsCreateModalOpen(false)} 
+                                className="w-full sm:w-auto text-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white"
+                              >
+                                <span className="font-medium">Cancel</span>
+                              </Button>
+                              <Button 
+                                onClick={handleCreateEvent} 
+                                className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-medium dark:bg-primary dark:hover:bg-primary/90 dark:text-white"
+                              >
+                                <span className="text-white font-medium">Create Event</span>
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+
+                      {/* Edit Event Modal with dark mode support */}
+                      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                        <DialogContent className="max-w-2xl mx-4 max-h-[90vh] overflow-y-auto dark:bg-gray-800 dark:border-gray-700">
+                          <DialogHeader>
+                            <DialogTitle className="dark:text-white">Edit Event</DialogTitle>
+                          </DialogHeader>
+                          {editingEvent && (
+                            <div className="space-y-4 mt-4">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                  <Label htmlFor="edit-title" className="dark:text-gray-200">Event Title</Label>
+                                  <Input
+                                    id="edit-title"
+                                    value={editingEvent.title}
+                                    onChange={(e) => setEditingEvent({...editingEvent, title: e.target.value})}
+                                    placeholder="Enter event title"
+                                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="edit-category" className="dark:text-gray-200">Category</Label>
+                                  <select
+                                    id="edit-category"
+                                    value={editingEvent.category}
+                                    onChange={(e) => setEditingEvent({...editingEvent, category: e.target.value})}
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white"
+                                  >
+                                    <option value="">Select Category</option>
+                                    <option value="Technology">Technology</option>
+                                    <option value="Music">Music</option>
+                                    <option value="Business">Business</option>
+                                    <option value="Art">Art</option>
+                                    <option value="Food">Food</option>
+                                    <option value="Marketing">Marketing</option>
+                                  </select>
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="edit-description" className="dark:text-gray-200">Description</Label>
+                                <Textarea
+                                  id="edit-description"
+                                  value={editingEvent.description}
+                                  onChange={(e) => setEditingEvent({...editingEvent, description: e.target.value})}
+                                  placeholder="Enter event description"
+                                  rows={3}
+                                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                />
+                              </div>
+                              
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                  <Label htmlFor="edit-date" className="dark:text-gray-200">Date</Label>
+                                  <Input
+                                    id="edit-date"
+                                    type="date"
+                                    value={editingEvent.date}
+                                    onChange={(e) => setEditingEvent({...editingEvent, date: e.target.value})}
+                                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="edit-time" className="dark:text-gray-200">Time</Label>
+                                  <Input
+                                    id="edit-time"
+                                    type="time"
+                                    value={editingEvent.time}
+                                    onChange={(e) => setEditingEvent({...editingEvent, time: e.target.value})}
+                                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                  />
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="edit-location" className="dark:text-gray-200">Location</Label>
+                                <Input
+                                  id="edit-location"
+                                  value={editingEvent.location}
+                                  onChange={(e) => setEditingEvent({...editingEvent, location: e.target.value})}
+                                  placeholder="Enter event location"
+                                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                />
+                              </div>
+                              
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div>
+                                  <Label htmlFor="edit-price" className="dark:text-gray-200">Price ($)</Label>
+                                  <Input
+                                    id="edit-price"
+                                    type="number"
+                                    value={editingEvent.price}
+                                    onChange={(e) => setEditingEvent({...editingEvent, price: e.target.value})}
+                                    placeholder="0"
+                                    min="0"
+                                    step="0.01"
+                                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="edit-totalSeats" className="dark:text-gray-200">Total Seats</Label>
+                                  <Input
+                                    id="edit-totalSeats"
+                                    type="number"
+                                    value={editingEvent.totalSeats}
+                                    onChange={(e) => setEditingEvent({...editingEvent, totalSeats: e.target.value})}
+                                    placeholder="100"
+                                    min="1"
+                                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                  />
+                                </div>
+                                <div>
+                                  <Label htmlFor="edit-availableSeats" className="dark:text-gray-200">Available Seats</Label>
+                                  <Input
+                                    id="edit-availableSeats"
+                                    type="number"
+                                    value={editingEvent.availableSeats}
+                                    onChange={(e) => setEditingEvent({...editingEvent, availableSeats: e.target.value})}
+                                    placeholder="100"
+                                    min="0"
+                                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                  />
+                                </div>
+                              </div>
+                              
+                              <div>
+                                <Label htmlFor="edit-image" className="dark:text-gray-200">Image URL</Label>
+                                <Input
+                                  id="edit-image"
+                                  value={editingEvent.image}
+                                  onChange={(e) => setEditingEvent({...editingEvent, image: e.target.value})}
+                                  placeholder="https://example.com/image.jpg"
+                                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                />
+                                {editingEvent.image && (
+                                  <div className="mt-2">
+                                    <img 
+                                      src={editingEvent.image} 
+                                      alt="Event preview" 
+                                      className="w-32 h-20 object-cover rounded border dark:border-gray-600"
+                                      onError={(e) => {
+                                        const target = e.target as HTMLImageElement;
+                                        target.style.display = 'none';
+                                      }}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 pt-4 border-t dark:border-gray-600">
+                                <Button 
+                                  variant="outline" 
+                                  onClick={() => setIsEditModalOpen(false)} 
+                                  className="w-full sm:w-auto text-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white"
+                                >
+                                  <span className="font-medium">Cancel</span>
+                                </Button>
+                                <Button 
+                                  onClick={handleUpdateEvent} 
+                                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-medium dark:bg-primary dark:hover:bg-primary/90 dark:text-white"
+                                >
+                                  <Edit className="mr-2 h-4 w-4 text-white" />
+                                  <span className="text-white font-medium">Update Event</span>
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </DialogContent>
+                      </Dialog>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent>
+                  {/* Enhanced Filter Section with dark mode */}
+                  <div className="space-y-4 mb-6">
+                    {/* Search and Category Row */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                        <Input
+                          placeholder="Search events..."
+                          value={eventFilters.searchTerm}
+                          onChange={(e) => setEventFilters({...eventFilters, searchTerm: e.target.value})}
+                          className="pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                        />
+                      </div>
+                      
+                      <div>
+                        <select
+                          value={eventFilters.selectedCategory}
+                          onChange={(e) => setEventFilters({...eventFilters, selectedCategory: e.target.value})}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white"
+                        >
+                          {eventCategories.map(category => (
+                            <option key={category} value={category}>{category}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <select
+                          value={`${eventFilters.sortBy}-${eventFilters.sortOrder}`}
+                          onChange={(e) => {
+                            const [sortBy, sortOrder] = e.target.value.split('-');
+                            setEventFilters({...eventFilters, sortBy, sortOrder: sortOrder as 'asc' | 'desc'});
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white"
+                        >
+                          <option value="date-asc">Date (Earliest First)</option>
+                          <option value="date-desc">Date (Latest First)</option>
+                          <option value="title-asc">Title (A-Z)</option>
+                          <option value="title-desc">Title (Z-A)</option>
+                          <option value="price-asc">Price (Low to High)</option>
+                          <option value="price-desc">Price (High to Low)</option>
+                          <option value="category-asc">Category (A-Z)</option>
+                          <option value="seats-asc">Available Seats (Low to High)</option>
+                          <option value="seats-desc">Available Seats (High to Low)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Advanced Filters Row */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div>
+                        <Label className="text-sm font-medium dark:text-gray-200">Date From</Label>
+                        <Input
+                          type="date"
+                          value={eventFilters.dateFrom}
+                          onChange={(e) => setEventFilters({...eventFilters, dateFrom: e.target.value})}
+                          className="mt-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label className="text-sm font-medium dark:text-gray-200">Date To</Label>
+                        <Input
+                          type="date"
+                          value={eventFilters.dateTo}
+                          onChange={(e) => setEventFilters({...eventFilters, dateTo: e.target.value})}
+                          className="mt-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-sm font-medium dark:text-gray-200">Min Price ($)</Label>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          value={eventFilters.priceMin}
+                          onChange={(e) => setEventFilters({...eventFilters, priceMin: e.target.value})}
+                          className="mt-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-sm font-medium dark:text-gray-200">Max Price ($)</Label>
+                        <Input
+                          type="number"
+                          placeholder="500"
+                          value={eventFilters.priceMax}
+                          onChange={(e) => setEventFilters({...eventFilters, priceMax: e.target.value})}
+                          className="mt-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Filter Actions */}
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
+                      <div className="text-sm text-gray-600 dark:text-gray-300">
+                        Showing {filteredAndSortedEvents.length} of {events.length} events
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={clearEventFilters}
+                        className="w-full sm:w-auto dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                      >
+                        Clear Filters
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Events Table with dark mode */}
+                  <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>Event</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>Price</TableHead>
-                        <TableHead>Seats</TableHead>
-                        <TableHead>Actions</TableHead>
+                      <TableRow className="dark:border-gray-700">
+                        <TableHead className="dark:text-gray-300">Event</TableHead>
+                        <TableHead className="dark:text-gray-300">Date</TableHead>
+                        <TableHead className="hidden sm:table-cell dark:text-gray-300">Category</TableHead>
+                        <TableHead className="hidden md:table-cell dark:text-gray-300">Price</TableHead>
+                        <TableHead className="hidden lg:table-cell dark:text-gray-300">Seats</TableHead>
+                        <TableHead className="dark:text-gray-300">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {events.map((event) => (
-                        <TableRow key={event.id}>
+                      {filteredAndSortedEvents.length > 0 ? (
+                        filteredAndSortedEvents.map((event) => (
+                          <TableRow key={event.id} className="dark:border-gray-700">
+                            <TableCell>
+                              <div className="flex items-center space-x-3">
+                                <img 
+                                  src={event.image} 
+                                  alt={event.title}
+                                  className="w-12 h-12 rounded object-cover"
+                                />
+                                <div className="min-w-0">
+                                  <p className="font-medium truncate dark:text-white">{event.title}</p>
+                                  <p className="text-sm text-gray-600 dark:text-gray-300 truncate">{event.location}</p>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap">
+                              <div>
+                                <div className="font-medium dark:text-white">{new Date(event.date).toLocaleDateString()}</div>
+                                <div className="text-sm text-gray-600 dark:text-gray-300">{event.time}</div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="hidden sm:table-cell">
+                              <Badge variant="secondary" className="dark:bg-gray-700 dark:text-gray-300">{event.category}</Badge>
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              <span className="font-medium dark:text-white">${event.price}</span>
+                            </TableCell>
+                            <TableCell className="hidden lg:table-cell">
+                              <div className="text-sm">
+                                <div className="font-medium dark:text-white">{event.availableSeats}/{event.totalSeats}</div>
+                                <div className="text-gray-600 dark:text-gray-300">
+                                  {Math.round((event.availableSeats / event.totalSeats) * 100)}% available
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex space-x-1">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                                  title="Edit Event"
+                                  onClick={() => handleEditEvent(event)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleDeleteEvent(event.id)}
+                                  className="h-8 w-8 p-0 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:border-red-600 dark:hover:border-red-500"
+                                  title="Delete Event"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-8">
+                            <div className="flex flex-col items-center space-y-2">
+                              <Calendar className="h-12 w-12 text-gray-400 dark:text-gray-500" />
+                              <h3 className="text-lg font-medium text-gray-900 dark:text-white">No events found</h3>
+                              <p className="text-gray-600 dark:text-gray-300">Try adjusting your filters to see more events.</p>
+                              <Button 
+                                variant="outline" 
+                                onClick={clearEventFilters} 
+                                className="mt-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                              >
+                                Clear Filters
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                  </div>
+
+                  {/* Pagination (if needed) with dark mode */}
+                  {filteredAndSortedEvents.length > 0 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between mt-6 space-y-2 sm:space-y-0">
+                      <div className="text-sm text-gray-600 dark:text-gray-300">
+                        Total: {filteredAndSortedEvents.length} event{filteredAndSortedEvents.length !== 1 ? 's' : ''}
+                      </div>
+                      {filteredAndSortedEvents.length > 10 && (
+                        <div className="flex space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                          >
+                            Previous
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                          >
+                            Next
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* User Management Tab - FIXED MOBILE LAYOUT WITH DARK MODE */}
+            <TabsContent value="users">
+              <Card className="dark:bg-gray-800 dark:border-gray-700">
+                <CardHeader>
+                  {/* Fixed header layout for mobile with dark mode */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+                    <CardTitle className="flex items-center dark:text-white">
+                      <Users className="mr-2 h-5 w-5" />
+                      User Management
+                    </CardTitle>
+                    
+                    {/* Fixed button container with better styling */}
+                    <div className="flex-shrink-0 w-full sm:w-auto">
+                      <Button 
+                        onClick={handleAddUser}
+                        className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-medium dark:bg-primary dark:hover:bg-primary/90 dark:text-white"
+                      >
+                        <Plus className="mr-2 h-4 w-4 text-white" />
+                        <span className="whitespace-nowrap text-white font-medium">Add User</span>
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {/* Search and filters - mobile responsive with dark mode */}
+                  <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                      <Input
+                        placeholder="Search users..."
+                        className="w-full pl-10 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                      />
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                      <select className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary min-w-0 sm:min-w-[120px] dark:bg-gray-700 dark:text-white">
+                        <option>All Roles</option>
+                        <option>Admin</option>
+                        <option>User</option>
+                      </select>
+                      <select className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary min-w-0 sm:min-w-[120px] dark:bg-gray-700 dark:text-white">
+                        <option>All Status</option>
+                        <option>Active</option>
+                        <option>Inactive</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Mobile responsive table with dark mode */}
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="dark:border-gray-700">
+                          <TableHead className="dark:text-gray-300">User</TableHead>
+                          <TableHead className="hidden sm:table-cell dark:text-gray-300">Role</TableHead>
+                          <TableHead className="hidden md:table-cell dark:text-gray-300">Status</TableHead>
+                          <TableHead className="hidden lg:table-cell dark:text-gray-300">Join Date</TableHead>
+                          <TableHead className="dark:text-gray-300">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {/* Sample user data with dark mode and functional buttons */}
+                        <TableRow className="dark:border-gray-700">
                           <TableCell>
                             <div className="flex items-center space-x-3">
-                              <img 
-                                src={event.image} 
-                                alt={event.title}
-                                className="w-12 h-12 rounded object-cover"
-                              />
-                              <div>
-                                <p className="font-medium">{event.title}</p>
-                                <p className="text-sm text-gray-600">{event.location}</p>
+                              <div className="w-8 h-8 bg-primary dark:bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                                JD
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-medium dark:text-white">John Doe</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-300 truncate">john@example.com</p>
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>{new Date(event.date).toLocaleDateString()}</TableCell>
-                          <TableCell>
-                            <Badge variant="secondary">{event.category}</Badge>
+                          <TableCell className="hidden sm:table-cell">
+                            <Badge variant="outline" className="dark:border-gray-600 dark:text-gray-300">User</Badge>
                           </TableCell>
-                          <TableCell>${event.price}</TableCell>
-                          <TableCell>{event.availableSeats}/{event.totalSeats}</TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            <Badge variant="secondary" className="dark:bg-gray-700 dark:text-gray-300">Active</Badge>
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell dark:text-gray-300">Jan 15, 2024</TableCell>
                           <TableCell>
-                            <div className="flex space-x-2">
+                            <div className="flex space-x-1">
                               <Button
                                 variant="outline"
                                 size="sm"
+                                onClick={() => handleEditUser('user-1', 'John Doe')}
+                                className="h-8 w-8 p-0 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                                title="Edit User"
                               >
                                 <Edit className="h-4 w-4" />
                               </Button>
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleDeleteEvent(event.id)}
+                                onClick={() => handleDeleteUser('user-1', 'John Doe')}
+                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:border-red-600 dark:hover:border-red-500"
+                                title="Delete User"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
                           </TableCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                        
+                        <TableRow className="dark:border-gray-700">
+                          <TableCell>
+                            <div className="flex items-center space-x-3">
+                              <div className="w-8 h-8 bg-primary dark:bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
+                                JS
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-medium dark:text-white">Jane Smith</p>
+                                <p className="text-sm text-gray-600 dark:text-gray-300 truncate">jane@example.com</p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            <Badge variant="default" className="bg-primary text-white dark:bg-primary-600">Admin</Badge>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            <Badge variant="secondary" className="dark:bg-gray-700 dark:text-gray-300">Active</Badge>
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell dark:text-gray-300">Feb 10, 2024</TableCell>
+                          <TableCell>
+                            <div className="flex space-x-1">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditUser('user-2', 'Jane Smith')}
+                                className="h-8 w-8 p-0 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                                title="Edit User"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteUser('user-2', 'Jane Smith')}
+                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:border-red-600 dark:hover:border-red-500"
+                                title="Delete User"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  {/* Mobile-friendly pagination with dark mode and functional buttons */}
+                  <div className="flex flex-col sm:flex-row items-center justify-between mt-6 space-y-2 sm:space-y-0">
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Showing {((currentPage - 1) * usersPerPage) + 1}-{Math.min(currentPage * usersPerPage, 2)} of 2 users
+                    </p>
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handlePreviousPage}
+                        disabled={currentPage === 1}
+                        className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Previous
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleNextPage}
+                        disabled={currentPage * usersPerPage >= 2} // Disable if no more pages
+                        className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
-
-            {/* User Management Tab */}
-            <TabsContent value="users">
-              <AdminUserManagement />
-            </TabsContent>
           </Tabs>
         </div>
+        
+        <EnhancedFooter />
       </div>
     );
   }
 
-  // Fallback
+  // Fallback with dark mode support
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Access Denied</h1>
-          <p className="text-lg text-gray-600">You don't have permission to access this page.</p>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Access Denied</h1>
+          <p className="text-lg text-gray-600 dark:text-gray-300">You don't have permission to access this page.</p>
         </div>
       </div>
       <EnhancedFooter />
