@@ -1,4 +1,4 @@
-// src/pages/Dashboard.tsx - Fixed dark mode button visibility issues
+import EnhancedUserManagement from '@/components/EnhancedUserManagement';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -1519,6 +1519,9 @@ const Dashboard: React.FC = () => {
       </div>
     );
   }
+  <TabsContent value="users">
+  <EnhancedUserManagement />
+</TabsContent>
 
   // Fallback with dark mode support
   return (
