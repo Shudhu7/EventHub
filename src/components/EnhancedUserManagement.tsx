@@ -471,10 +471,10 @@ const EnhancedUserManagement: React.FC<EnhancedUserManagementProps> = ({ classNa
               User Management
             </CardTitle>
             <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-primary hover:bg-primary/90 text-white font-medium dark:bg-primary dark:hover:bg-primary/90">
-                  <Plus className="mr-2 h-4 w-4 text-white" />
-                  <span className="text-white font-medium">Add User</span>
+             <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add User
                 </Button>
               </DialogTrigger>
               <DialogContent className="dark:bg-gray-800 dark:border-gray-700">
