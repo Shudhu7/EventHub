@@ -25,24 +25,38 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing token on mount
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    
-    if (token && userData) {
-      try {
-        const user = JSON.parse(userData);
-        setState({
-          user,
-          token,
-          isAuthenticated: true,
-        });
-      } catch (error) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      }
-    }
+    // OPTION 1: Completely disable auto-login
+    // Users will need to log in every time they visit
     setLoading(false);
+    
+    // OPTION 2: Clear any existing session data on startup (uncomment to use)
+    // localStorage.removeItem('token');
+    // localStorage.removeItem('user');
+    // setLoading(false);
+    
+    // OPTION 3: Add "Remember Me" functionality (uncomment to use)
+    // const rememberMe = localStorage.getItem('rememberMe') === 'true';
+    // 
+    // if (rememberMe) {
+    //   const token = localStorage.getItem('token');
+    //   const userData = localStorage.getItem('user');
+    //   
+    //   if (token && userData) {
+    //     try {
+    //       const user = JSON.parse(userData);
+    //       setState({
+    //         user,
+    //         token,
+    //         isAuthenticated: true,
+    //       });
+    //     } catch (error) {
+    //       localStorage.removeItem('token');
+    //       localStorage.removeItem('user');
+    //       localStorage.removeItem('rememberMe');
+    //     }
+    //   }
+    // }
+    // setLoading(false);
   }, []);
 
   // Generate a unique user ID based on email
@@ -55,7 +69,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return `user_${emailHash}_${timestamp}`;
   };
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string, rememberMe = false): Promise<boolean> => {
     try {
       // Check if this is a returning user
       const existingUsers = JSON.parse(localStorage.getItem('registered_users') || '{}');
@@ -87,6 +101,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isAuthenticated: true,
       });
       
+      // Only store in localStorage if "Remember Me" is checked (for Option 3)
+      if (rememberMe) {
+        localStorage.setItem('token', mockToken);
+        localStorage.setItem('user', JSON.stringify(mockUser));
+        localStorage.setItem('rememberMe', 'true');
+      }
+      
+      // For Option 1 & 2: Always store (current behavior)
       localStorage.setItem('token', mockToken);
       localStorage.setItem('user', JSON.stringify(mockUser));
       
@@ -144,6 +166,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('rememberMe'); // For Option 3
   };
 
   return (

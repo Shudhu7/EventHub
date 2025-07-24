@@ -8,6 +8,9 @@ import EventCard from '@/components/EventCard';
 import { events, categories } from '@/data/events';
 import { Search, Calendar, Users, MapPin } from 'lucide-react';
 import EnhancedFooter from '@/components/EnhancedFooter';
+import { FilterChips } from '@/components/ui/filter-chips';
+import { PriceRangeSlider } from '@/components/ui/price-range-slider';
+
 
 const Home: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');

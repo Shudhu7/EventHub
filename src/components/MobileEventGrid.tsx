@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Event } from '@/types/event';
 import MobileOptimizedEventCard from './MobileOptimizedEventCard';
 import { Grid, List } from 'lucide-react';
+import { InfiniteScroll } from '@/components/ui/infinite-scroll';
 
 interface MobileEventGridProps {
   events: Event[];
